@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}人脸注册 · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>人脸注册</h1>
+    <p>录入身份信息并采集 1~{{ max_samples }} 帧人脸，系统提取 512 维特征、AES-256-GCM 加密后入库，不保存原始图像</p>
+  </div>
+  <div class="row">
+    <button class="btn" id="cameraBtn">启用摄像头</button>
+    <button class="btn primary" id="enrollBtn" disabled>提交注册</button>
+  </div>
+</div>
+
+<div class="grid two">
+  <section class="card">
+    <h2>人脸采集 <span class="hint" id="captureHint">已采集 0 / 5 帧</span></h2>
+    <div class="video-wrap">
+      <video id="video" playsinline muted></video>
+      <div class="placeholder" id="placeholder">点击右上角「启用摄像头」<br>或直接在下方选择本地照片</div>
+      <div class="badge-live" id="liveBadge">摄像头未启用</div>
+    </div>
+    <div class="row mt between">
+      <div class="row">
+        <button class="btn" id="captureBtn" disabled>采集当前帧</button>
+        <button class="btn ghost" id="pickBtn">选择本地照片</button>
+        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+      </div>
+      <button class="btn ghost sm" id="clearBtn">清空样本</button>
+    </div>
+    <div class="thumbs mt" id="thumbs"></div>
+    <p class="muted small mt" id="sampleTip">建议采集 3 帧以上不同角度样本；检测到多张人脸或无人脸的帧会被自动拒绝。</p>
+  </section>
+
+  <section class="card">
+    <h2>身份信息</h2>
+    <form id="enrollForm" autocomplete="off">
+      <label class="field"><span>学号 / 工号（2~20 位字母数字，全局唯一）</span>
+        <input type="text" id="userNo" placeholder="例如 2023010101" maxlength="20" required>
+      </label>
+      <label class="field"><span>姓名</span>
+        <input type="text" id="userName" placeholder="例如 张三" maxlength="20" required>
+      </label>
+      <label class="field"><span>学院 / 部门（可选）</span>
+        <input type="text" id="dept" placeholder="例如 计算机学院" maxlength="50">
+      </label>
+      <label class="field"><span>联系方式（可选）</span>
+        <input type="tel" id="phone" placeholder="例如 13800000000" maxlength="20">
+      </label>
+      <label class="row small muted" style="gap:8px">
+        <input type="checkbox" id="replace"> 学号已存在时覆盖其人脸样本
+      </label>
+    </form>
+
+    <div class="result-panel mt">
+      <div class="result-hero idle" id="resultHero">
+        <div class="state" id="resultState">尚未提交</div>
+        <div class="name" id="resultName">—</div>
+        <div class="uid" id="resultUid">采集完成后点击「提交注册」</div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="k">有效样本</div><div class="v" id="mSamples">—</div></div>
+        <div class="metric"><div class="k">平均质量分</div><div class="v" id="mQuality">—</div></div>
+        <div class="metric"><div class="k">注册耗时</div><div class="v" id="mCost">—</div></div>
+        <div class="metric"><div class="k">用户 ID</div><div class="v" id="mUserId">—</div></div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/enroll.js') }}"></script>
+{% endblock %}
