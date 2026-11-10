@@ -1,0 +1,19 @@
+# FaceNet2Rec 校园人脸识别系统 —— 运行依赖
+# Python 3.9.x（建议 3.9.13+），Windows / Linux 均可
+
+Flask==2.3.3
+Werkzeug==2.3.7
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+itsdangerous==2.1.2
+click==8.1.7
+blinker==1.6.2
+
+# 人脸特征加密（AES-256-GCM）
+cryptography==41.0.7
+cffi==1.16.0
+pycparser==2.21
+
+# 人脸检测与 FaceNet2Rec 推理（OpenCV DNN 后端，CPU 即可）
+numpy==1.24.3
+opencv-python-headless==4.8.1.78

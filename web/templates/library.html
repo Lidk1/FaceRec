@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}特征库 · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>人脸特征库</h1>
+    <p>特征向量以 AES-256-GCM 密文存储；管理员可删除特征、注销用户，并查看识别效果统计</p>
+  </div>
+  <div class="row">
+    <input type="text" id="search" placeholder="搜索学号 / 姓名" style="width:200px">
+    <button class="btn" id="refreshBtn">刷新</button>
+  </div>
+</div>
+
+<div class="grid three" style="margin-bottom:18px">
+  <div class="card"><div class="muted small">注册用户</div><div class="v" id="sUsers" style="font-size:26px;font-weight:800">—</div></div>
+  <div class="card"><div class="muted small">有效特征向量</div><div class="v" id="sFeatures" style="font-size:26px;font-weight:800">—</div></div>
+  <div class="card"><div class="muted small">识别成功率</div><div class="v" id="sRate" style="font-size:26px;font-weight:800">—</div></div>
+</div>
+
+<div class="grid two">
+  <section class="card">
+    <h2>用户与特征 <span class="hint" id="userCount"></span></h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>学号/工号</th><th>姓名</th><th>学院/部门</th><th>特征</th><th>注册时间</th><th>操作</th></tr>
+        </thead>
+        <tbody id="userRows"><tr><td colspan="6" class="empty">加载中…</td></tr></tbody>
+      </table>
+    </div>
+    <div id="featureDetail" class="mt"></div>
+  </section>
+
+  <section class="card">
+    <h2>识别记录 <span class="hint" id="recordCount"></span></h2>
+    <div class="list" id="recordList" style="max-height:330px"><div class="empty">加载中…</div></div>
+    <h2 class="mt">失败原因分布</h2>
+    <div class="list" id="failList"><div class="empty">暂无数据</div></div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/library.js') }}"></script>
+{% endblock %}
