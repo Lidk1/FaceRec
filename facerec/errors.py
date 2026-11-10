@@ -78,3 +78,21 @@ class StoreError(FaceRecError):
     code = 1009
     http_status = 503
     default_msg = "数据存储不可用，请稍后重试"
+
+
+class AuthError(FaceRecError):
+    code = 1010
+    http_status = 401
+    default_msg = "未登录或会话已过期"
+
+
+class DuplicateAccountError(FaceRecError):
+    code = 1011
+    http_status = 409
+    default_msg = "该用户名已被注册"
+
+
+class ForbiddenError(FaceRecError):
+    code = 1012
+    http_status = 403
+    default_msg = "无权限执行此操作"

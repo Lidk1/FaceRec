@@ -23,7 +23,10 @@ def app(settings, service):
 
 @pytest.fixture()
 def client(app):
-    return app.test_client()
+    c = app.test_client()
+    resp = c.post("/api/auth/login", json={"username": "admin", "password": "admin123", "role": "admin"})
+    assert resp.status_code == 200
+    return c
 
 
 def enroll_user(client, user_no="2023010101", name="韩萧"):
@@ -36,6 +39,26 @@ def enroll_user(client, user_no="2023010101", name="韩萧"):
             "images": [PNG_B64],
         },
     )
+
+
+class TestAuth:
+    def test_login_page(self, app):
+        c = app.test_client()
+        html = c.get("/login").get_data(as_text=True)
+        assert "普通用户" in html
+        resp = c.post(
+            "/api/auth/register",
+            json={"username": "newuser01", "password": "pass123", "display_name": "新用户"},
+        )
+        assert resp.status_code == 200
+
+    def test_login_wrong_role(self, app):
+        c = app.test_client()
+        body = c.post(
+            "/api/auth/login",
+            json={"username": "demo", "password": "demo123", "role": "admin"},
+        ).get_json()
+        assert body["code"] == 1010
 
 
 class TestSystem:

@@ -2,7 +2,6 @@
 (function () {
   "use strict";
 
-  /* 兼容旧版 Edge / 非 secure 降级环境 */
   if (typeof navigator !== "undefined") {
     if (!navigator.mediaDevices) navigator.mediaDevices = {};
     if (!navigator.mediaDevices.getUserMedia) {
@@ -21,7 +20,6 @@
     threshold: 0.75,
     captureWidth: 640,
 
-    /** 统一请求封装，自动解包 {code,msg,data} 并抛出友好错误 */
     async api(path, options = {}) {
       const opts = Object.assign({ headers: {} }, options);
       if (opts.body && !(opts.body instanceof FormData)) {
@@ -69,7 +67,6 @@
     },
   };
 
-  /** 摄像头封装：启用、关闭、抓取 JPEG dataURL */
   class Camera {
     constructor(video, overlay) {
       this.video = video;
@@ -86,9 +83,8 @@
       const map = {
         NotAllowedError: "浏览器或系统拒绝了摄像头权限，请在地址栏或 Windows「隐私-摄像头」中允许",
         NotFoundError: "未检测到摄像头，请确认笔记本摄像头已连接且驱动正常",
-        NotReadableError: "摄像头正被其它程序占用（如微信/腾讯会议），请关闭后重试",
-        OverconstrainedError: "摄像头不支持当前参数，将尝试默认设置",
-        SecurityError: "请通过 http://127.0.0.1:8080 打开本页，不要用 file:// 或直接双击 html",
+        NotReadableError: "摄像头正被其它程序占用，请关闭后重试",
+        SecurityError: "请通过 http://127.0.0.1:8080 打开本页，不要用 file:// 打开",
       };
       const name = err && err.name;
       return new Error(map[name] || (err && err.message) || "摄像头启用失败");
@@ -142,7 +138,7 @@
           this.video.addEventListener("loadeddata", onReady);
         }),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("摄像头画面启动超时，请关闭后重新点击「启用摄像头」")), 8000)
+          setTimeout(() => reject(new Error("摄像头画面启动超时，请重试")), 8000)
         ),
       ]);
       return this.stream;
@@ -153,12 +149,13 @@
         this.stream.getTracks().forEach((t) => t.stop());
         this.stream = null;
       }
-      this.video.srcObject = null;
-      this.video.classList.remove("mirror");
+      if (this.video) {
+        this.video.srcObject = null;
+        this.video.classList.remove("mirror");
+      }
       this.clearOverlay();
     }
 
-    /** 抓取当前帧，长边缩小到 captureWidth，返回 {dataUrl, width, height} */
     capture() {
       const vw = this.video.videoWidth;
       const vh = this.video.videoHeight;
@@ -174,7 +171,6 @@
       return { dataUrl: canvas.toDataURL("image/jpeg", 0.88), width, height };
     }
 
-    /** 把检测框画到覆盖层（按视频显示比例缩放） */
     drawBoxes(boxes) {
       const canvas = this.overlay;
       if (!canvas) return;
@@ -202,7 +198,6 @@
 
   App.Camera = Camera;
 
-  /** 顶栏状态：模型是否就绪 + 特征库规模 */
   async function refreshStatus() {
     const dot = document.getElementById("statusDot");
     const text = document.getElementById("statusText");
@@ -216,11 +211,13 @@
       App.threshold = s.threshold;
     } catch (err) {
       dot.className = "dot err";
-      text.textContent = "服务不可用";
+      text.textContent = err.code === 1010 ? "请登录" : "服务不可用";
     }
   }
 
   App.refreshStatus = refreshStatus;
-  document.addEventListener("DOMContentLoaded", refreshStatus);
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!document.body.classList.contains("auth-body")) refreshStatus();
+  });
   window.App = App;
 })();

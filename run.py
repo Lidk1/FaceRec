@@ -71,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
             import threading
             import webbrowser
 
-            threading.Timer(1.2, lambda: webbrowser.open(f"http://{host}:{port}/")).start()
+            threading.Timer(1.2, lambda: webbrowser.open(f"http://{host}:{port}/login")).start()
         except Exception:  # noqa: BLE001 - 无桌面环境时静默
             pass
 

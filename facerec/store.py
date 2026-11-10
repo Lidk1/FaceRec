@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
-from .errors import DuplicateUserError, StoreError, UserNotFoundError
+from .errors import DuplicateAccountError, DuplicateUserError, StoreError, UserNotFoundError
 from .utils import now_text
 
 _SCHEMA_FILE = Path(__file__).with_name("schema_sqlite.sql")
@@ -38,6 +38,26 @@ class UserRecord:
             "status": self.status,
             "create_time": self.create_time,
             "feature_count": self.feature_count,
+        }
+
+
+@dataclass
+class AccountRecord:
+    account_id: int
+    username: str
+    password_hash: str
+    display_name: str
+    role: str
+    status: int
+    create_time: str
+
+    def as_public_dict(self) -> dict:
+        return {
+            "account_id": self.account_id,
+            "username": self.username,
+            "display_name": self.display_name,
+            "role": self.role,
+            "create_time": self.create_time,
         }
 
 
@@ -87,6 +107,20 @@ class FaceStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._write_lock, self.connect() as conn:
             conn.executescript(self._schema)
+            conn.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS fr_account (
+                    account_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                    password_hash TEXT NOT NULL,
+                    display_name TEXT NOT NULL,
+                    role TEXT NOT NULL CHECK (role IN ('user', 'admin')),
+                    status INTEGER NOT NULL DEFAULT 1,
+                    create_time TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_account_role ON fr_account(role, status);
+                """
+            )
 
     def ping(self) -> bool:
         try:
@@ -95,6 +129,45 @@ class FaceStore:
             return True
         except Exception:  # noqa: BLE001
             return False
+
+    # ------------------------------------------------------------------ 登录账号
+    def count_accounts(self) -> int:
+        with self.connect() as conn:
+            row = conn.execute("SELECT COUNT(*) FROM fr_account").fetchone()
+            return int(row[0]) if row else 0
+
+    def create_account(
+        self, username: str, password_hash: str, display_name: str, role: str
+    ) -> AccountRecord:
+        now = now_text()
+        try:
+            with self._write_lock, self.connect() as conn:
+                cursor = conn.execute(
+                    """INSERT INTO fr_account (username, password_hash, display_name, role, status, create_time)
+                       VALUES (?, ?, ?, ?, 1, ?)""",
+                    (username, password_hash, display_name, role, now),
+                )
+                account_id = int(cursor.lastrowid)
+        except sqlite3.IntegrityError as exc:
+            if "UNIQUE" in str(exc).upper():
+                raise DuplicateAccountError(f"用户名 {username} 已存在") from exc
+            raise StoreError(str(exc)) from exc
+        return self.get_account(account_id)
+
+    def get_account(self, account_id: int) -> AccountRecord:
+        with self.connect() as conn:
+            row = conn.execute("SELECT * FROM fr_account WHERE account_id = ?", (account_id,)).fetchone()
+        if row is None:
+            raise UserNotFoundError(f"账号 {account_id} 不存在")
+        return _row_to_account(row)
+
+    def get_account_by_username(self, username: str) -> Optional[AccountRecord]:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM fr_account WHERE username = ? COLLATE NOCASE",
+                (username.strip(),),
+            ).fetchone()
+        return _row_to_account(row) if row else None
 
     # ------------------------------------------------------------------ 用户
     def create_user(self, user_no: str, user_name: str, dept: str | None = None, phone: str | None = None) -> int:
@@ -287,6 +360,18 @@ class FaceStore:
                    ON CONFLICT(config_key) DO UPDATE SET config_value = excluded.config_value""",
                 (key, str(value), value_type, desc),
             )
+
+
+def _row_to_account(row: sqlite3.Row) -> AccountRecord:
+    return AccountRecord(
+        account_id=int(row["account_id"]),
+        username=str(row["username"]),
+        password_hash=str(row["password_hash"]),
+        display_name=str(row["display_name"]),
+        role=str(row["role"]),
+        status=int(row["status"]),
+        create_time=str(row["create_time"]),
+    )
 
 
 def _row_to_user(row: sqlite3.Row) -> UserRecord:

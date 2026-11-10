@@ -80,6 +80,9 @@ class FaceRecognitionService:
         """按配置装配默认实现（检测器 / 编码器 / 加密器）。"""
         store = store or FaceStore(settings.db_path)
         store.init_schema()
+        from .auth import AuthService
+
+        AuthService(store).ensure_seed_accounts()
         detector = HaarFaceDetector(
             min_size=settings.min_face_size,
             scale_factor=settings.detector_scale,

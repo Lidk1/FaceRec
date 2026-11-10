@@ -1,0 +1,38 @@
+{% extends "auth_base.html" %}
+{% block title %}登录 · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="auth-card theme-user" id="authCard">
+  <div class="auth-brand">
+    <div class="logo lg">FR</div>
+    <h1>校园人脸识别系统</h1>
+    <p class="muted small">请选择身份入口并登录</p>
+  </div>
+
+  <div class="role-tabs" id="roleTabs">
+    <button type="button" class="role-tab active" data-role="user">普通用户</button>
+    <button type="button" class="role-tab" data-role="admin">管理员</button>
+  </div>
+
+  <form id="loginForm" class="auth-form" autocomplete="off">
+    <input type="hidden" id="role" name="role" value="user">
+    <label class="field"><span>用户名</span>
+      <input type="text" id="username" placeholder="3~32 位字母数字下划线" maxlength="32" required>
+    </label>
+    <label class="field"><span>密码</span>
+      <input type="password" id="password" placeholder="至少 6 位" maxlength="64" required>
+    </label>
+    <button type="submit" class="btn primary block" id="submitBtn">登录</button>
+    <p class="auth-error small" id="authError" style="display:none;margin-top:10px;color:var(--danger)"></p>
+  </form>
+
+  <div class="auth-foot row between">
+    <a href="{{ url_for('pages.register_page') }}" class="small">注册新账号</a>
+    <span class="small muted">演示：用户 demo / demo123 · 管理员 admin / admin123</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

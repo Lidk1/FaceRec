@@ -10,6 +10,7 @@ import logging
 
 from flask import Blueprint, current_app, jsonify, request
 
+from .auth import AuthService, admin_required, login_required
 from .errors import FaceRecError, ValidateError
 from .utils import ImageDecodeError, decode_base64_image
 
@@ -33,6 +34,10 @@ def fail(msg: str, code: int = 500, http_status: int = 200, data=None):
 
 def _service():
     return current_app.extensions["facerec"]["service"]
+
+
+def _auth() -> AuthService:
+    return current_app.extensions["facerec"]["auth"]
 
 
 def _payload() -> dict:
@@ -95,6 +100,35 @@ def _int_arg(name: str, default: int, minimum: int = 1, maximum: int = 200) -> i
 # ---------------------------------------------------------------------------
 
 
+@api_bp.post("/auth/login")
+def auth_login():
+    body = _payload()
+    account = _auth().login(body.get("username", ""), body.get("password", ""), body.get("role", "user"))
+    AuthService.write_session(account)
+    return ok(account.as_public_dict(), msg="登录成功")
+
+
+@api_bp.post("/auth/register")
+def auth_register():
+    body = _payload()
+    account = _auth().register(body.get("username", ""), body.get("password", ""), body.get("display_name", ""))
+    return ok(account.as_public_dict(), msg="注册成功，请返回登录")
+
+
+@api_bp.post("/auth/logout")
+def auth_logout():
+    AuthService.clear_session()
+    return ok(None, msg="已退出登录")
+
+
+@api_bp.get("/auth/me")
+def auth_me():
+    account = AuthService.current()
+    if not account:
+        return fail("未登录", 1010, 401)
+    return ok(account.as_dict())
+
+
 @api_bp.get("/health")
 def health():
     svc = _service()
@@ -112,6 +146,7 @@ def health():
 
 
 @api_bp.get("/face/status")
+@login_required
 def face_status():
     return ok(_service().status())
 
@@ -122,6 +157,7 @@ def face_status():
 
 
 @api_bp.post("/face/enroll")
+@login_required
 def enroll():
     body = _payload()
     images = _collect_images()
@@ -137,6 +173,7 @@ def enroll():
 
 
 @api_bp.post("/face/recognize")
+@login_required
 def recognize():
     body = _payload()
     images = _collect_images()
@@ -147,6 +184,7 @@ def recognize():
 
 
 @api_bp.post("/face/verify")
+@login_required
 def verify():
     body = _payload()
     raw = body.get("images") or [body.get("image_a"), body.get("image_b")]
@@ -165,6 +203,7 @@ def verify():
 
 
 @api_bp.get("/face/users")
+@login_required
 def list_users():
     return ok(
         _service().list_users(
@@ -176,16 +215,19 @@ def list_users():
 
 
 @api_bp.get("/face/users/<int:user_id>")
+@login_required
 def get_user(user_id: int):
     return ok(_service().get_user(user_id))
 
 
 @api_bp.delete("/face/users/<int:user_id>/features")
+@admin_required
 def delete_features(user_id: int):
     return ok(_service().delete_features(user_id), msg="人脸特征已删除")
 
 
 @api_bp.delete("/face/users/<int:user_id>")
+@admin_required
 def delete_user(user_id: int):
     return ok(_service().delete_user(user_id), msg="用户已注销")
 
@@ -196,6 +238,7 @@ def delete_user(user_id: int):
 
 
 @api_bp.get("/face/records")
+@login_required
 def list_records():
     return ok(
         {
@@ -208,6 +251,7 @@ def list_records():
 
 
 @api_bp.get("/face/stats")
+@admin_required
 def stats():
     return ok(_service().stats())
 

@@ -60,24 +60,17 @@
       document.getElementById("liveBadge").textContent = "摄像头未启用";
       return;
     }
-    const prevLabel = cameraBtn.textContent;
     try {
       cameraBtn.disabled = true;
-      cameraBtn.textContent = "正在打开…";
-      App.toast("正在请求摄像头权限，请在浏览器弹窗中选择「允许」", "info");
-      placeholder.innerHTML = "等待摄像头授权…";
       await camera.start();
       placeholder.style.display = "none";
       cameraBtn.textContent = "关闭摄像头";
       captureBtn.disabled = false;
       document.getElementById("liveBadge").textContent = "摄像头已就绪";
       document.getElementById("liveBadge").classList.add("on");
-      App.toast("摄像头已开启", "ok");
     } catch (err) {
-      cameraBtn.textContent = prevLabel;
       App.toast(err.message, "err");
-      placeholder.style.display = "grid";
-      placeholder.innerHTML = "无法访问摄像头<br>" + (err.message || "请检查浏览器权限，或改用本地照片");
+      placeholder.innerHTML = "无法访问摄像头<br>请检查浏览器权限，或改用本地照片";
     } finally {
       cameraBtn.disabled = false;
     }

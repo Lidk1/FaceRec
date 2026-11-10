@@ -80,13 +80,13 @@ def assemble() -> Path:
         "FaceNet2Rec 校园人脸识别系统 V1.0.0\n"
         "=====================================\n\n"
         "1. 双击 FaceRec.exe（或 start.bat）启动；\n"
-        "2. 控制台出现「访问: http://127.0.0.1:8080/」后，用 Chrome/Edge 打开该地址；\n"
-        "3. 页面：/ 识别终端、/enroll 人脸注册、/library 特征库；\n"
-        "4. 首次使用请允许浏览器访问摄像头；\n"
-        "5. 停止：关闭控制台窗口或 Ctrl+C。\n\n"
+        "2. 浏览器打开 http://127.0.0.1:8080/login 登录（首次自动跳转登录页）；\n"
+        "3. 演示账号：普通用户 demo/demo123 · 管理员 admin/admin123；可注册新用户；\n"
+        "4. 登录后：识别终端 / 人脸注册 / 特征库（仅管理员）；\n"
+        "5. 首次使用请允许浏览器访问摄像头；停止服务请关闭控制台或 Ctrl+C。\n\n"
         "换端口：FaceRec.exe --port 8090\n"
         "自检：  FaceRec.exe --check\n\n"
-        "数据文件在 data/ 目录，日志在 logs/ 目录；删除 data/facerec.db 可恢复初始状态。\n",
+        "数据在 data/，日志在 logs/；删除 data/facerec.db 可重置（账号表 fr_account 同库）。\n",
         encoding="utf-8",
     )
     return app_dir

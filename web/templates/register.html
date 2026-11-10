@@ -1,0 +1,36 @@
+{% extends "auth_base.html" %}
+{% block title %}注册 · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="auth-card theme-user" id="authCard">
+  <div class="auth-brand">
+    <div class="logo lg">FR</div>
+    <h1>注册普通用户</h1>
+    <p class="muted small">注册后可使用刷脸识别与人脸注册；管理员账号由系统预置</p>
+  </div>
+
+  <form id="registerForm" class="auth-form" autocomplete="off">
+    <label class="field"><span>用户名</span>
+      <input type="text" id="username" placeholder="全局唯一，不可修改" maxlength="32" required>
+    </label>
+    <label class="field"><span>显示名称</span>
+      <input type="text" id="displayName" placeholder="例如 张三" maxlength="30">
+    </label>
+    <label class="field"><span>密码</span>
+      <input type="password" id="password" placeholder="至少 6 位" maxlength="64" required>
+    </label>
+    <label class="field"><span>确认密码</span>
+      <input type="password" id="password2" placeholder="再次输入密码" maxlength="64" required>
+    </label>
+    <button type="submit" class="btn primary block" id="submitBtn">注册</button>
+  </form>
+
+  <div class="auth-foot">
+    <a href="{{ url_for('pages.login_page') }}" class="small">已有账号？去登录</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="auth-page theme-user">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body class="auth-body theme-user">
+<main class="auth-shell">
+  {% block content %}{% endblock %}
+</main>
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

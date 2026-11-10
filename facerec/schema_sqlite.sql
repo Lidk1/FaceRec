@@ -53,3 +53,16 @@ CREATE TABLE IF NOT EXISTS fr_config (
     value_type   TEXT NOT NULL DEFAULT 'STRING',
     config_desc  TEXT
 );
+
+-- 系统登录账号（与 fr_user 人脸档案分离：账号用于 Web 登录，fr_user 用于刷脸身份）
+CREATE TABLE IF NOT EXISTS fr_account (
+    account_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT    NOT NULL UNIQUE COLLATE NOCASE,
+    password_hash TEXT    NOT NULL,
+    display_name  TEXT    NOT NULL,
+    role          TEXT    NOT NULL CHECK (role IN ('user', 'admin')),
+    status        INTEGER NOT NULL DEFAULT 1,   -- 1 正常 2 停用
+    create_time   TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_account_role ON fr_account(role, status);

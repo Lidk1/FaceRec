@@ -10,6 +10,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from facerec.auth import AuthService  # noqa: E402
 from facerec.cipher import AesFeatureCipher  # noqa: E402
 from facerec.config import Settings, default_aes_key  # noqa: E402
 from facerec.engine import FaceEngine  # noqa: E402
@@ -35,6 +36,7 @@ def settings(tmp_path: Path) -> Settings:
 def store(settings: Settings) -> FaceStore:
     store = FaceStore(settings.db_path)
     store.init_schema()
+    AuthService(store).ensure_seed_accounts()
     return store
 
 
